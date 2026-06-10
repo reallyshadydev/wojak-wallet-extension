@@ -1,4 +1,4 @@
-import { usePushBellsTxCallback } from "@/ui/hooks/transactions";
+import { usePushWojakTxCallback } from "@/ui/hooks/transactions";
 import s from "./styles.module.scss";
 import cn from "classnames";
 import { useState } from "react";
@@ -12,7 +12,7 @@ import { useGetCurrentAccount } from "@/ui/states/walletState";
 
 const ConfirmSend = () => {
   const location = useLocation();
-  const pushTx = usePushBellsTxCallback();
+  const pushTx = usePushWojakTxCallback();
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const updateAddressBook = useUpdateAddressBook();
@@ -64,11 +64,11 @@ const ConfirmSend = () => {
       ),
       value:
         location.state.amount +
-        (location.state.inscriptionTransaction ? "" : " BEL"),
+        (location.state.inscriptionTransaction ? "" : " WJK"),
     },
     {
       label: t("send.confirm_send.fee"),
-      value: `${location.state.feeAmount / 10 ** 8} BEL (${
+      value: `${location.state.feeAmount / 10 ** 8} WJK (${
         location.state.includeFeeInAmount
           ? t("send.confirm_send.included")
           : t("send.confirm_send.not_included")

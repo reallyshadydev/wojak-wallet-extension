@@ -1,4 +1,5 @@
-import { address, Network, networks } from "belcoinjs-lib";
+import { address, Network } from "belcoinjs-lib";
+import { wojakcoinTestnet } from "@/shared/networks";
 import { AddressType } from "bellhdw";
 import { useShallow } from "zustand/react/shallow";
 
@@ -48,8 +49,8 @@ export function calcBalanceLength(balance: number) {
 
 export function isTestnet(network: Network) {
   return (
-    network.pubKeyHash === networks.testnet.pubKeyHash &&
-    network.scriptHash === networks.testnet.scriptHash
+    network.pubKeyHash === wojakcoinTestnet.pubKeyHash &&
+    network.scriptHash === wojakcoinTestnet.scriptHash
   );
 }
 

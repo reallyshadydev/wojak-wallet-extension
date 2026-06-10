@@ -10,7 +10,7 @@ import toast from "react-hot-toast";
 import { gptFeeCalculate, ss } from "../utils";
 import { useAppState } from "../states/appState";
 
-export function useCreateBellsTxCallback() {
+export function useCreateWojakTxCallback() {
   const { selectedAccount, selectedWallet } = useWalletState(
     ss(["selectedAccount", "selectedWallet"])
   );
@@ -206,7 +206,7 @@ export const useSendTransferTokens = () => {
   };
 };
 
-export function usePushBellsTxCallback() {
+export function usePushWojakTxCallback() {
   const { apiController } = useControllersState(ss(["apiController"]));
 
   return async (rawtx: string) => {

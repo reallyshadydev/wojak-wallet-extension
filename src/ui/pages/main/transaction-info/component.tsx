@@ -11,7 +11,7 @@ import { shortAddress } from "@/shared/utils/transactions";
 import toast from "react-hot-toast";
 import { t } from "i18next";
 import { useGetCurrentAccount } from "@/ui/states/walletState";
-import { NINTONDO_URL } from "@/shared/constant";
+import { WOJAKCOIN_URL } from "@/shared/constant";
 import { useControllersState } from "@/ui/states/controllerState";
 import { ss } from "@/ui/utils";
 import { useTransactionManagerContext } from "@/ui/utils/tx-ctx";
@@ -31,7 +31,7 @@ const TransactionInfo = () => {
 
   const onOpenExplorer = async () => {
     await browserTabsCreate({
-      url: `${NINTONDO_URL}/explorer/tx/${txId}`,
+      url: `${WOJAKCOIN_URL}/explorer/tx/${txId}`,
       active: true,
     });
   };
@@ -66,14 +66,14 @@ const TransactionInfo = () => {
               <p className={s.transactionP}>
                 {t("transaction_info.fee_label")}
               </p>
-              <span>{tx.fee / 10 ** 8} BEL</span>
+              <span>{tx.fee / 10 ** 8} WJK</span>
             </div>
             <div className={s.group}>
               <p className={s.transactionP}>
                 {t("transaction_info.value_label")}
               </p>
               <span>
-                {tx.vout.reduce((acc, cur) => cur.value + acc, 0) / 10 ** 8} BEL
+                {tx.vout.reduce((acc, cur) => cur.value + acc, 0) / 10 ** 8} WJK
               </span>
             </div>
 
@@ -148,7 +148,7 @@ const TableItem: FC<ITableItem> = ({ items, currentAddress, label }) => {
             <div className={s.tableGroup}>
               <span>#{idx}</span>
               <span className={s.tableSecond}>
-                {(i.value / 10 ** 8).toFixed(8)} BEL
+                {(i.value / 10 ** 8).toFixed(8)} WJK
               </span>
             </div>
 

@@ -1,5 +1,5 @@
 import {
-  useCreateBellsTxCallback,
+  useCreateWojakTxCallback,
   useCreateOrdTx,
 } from "@/ui/hooks/transactions";
 import {
@@ -44,7 +44,7 @@ const CreateSend = () => {
   });
   const [includeFeeLocked, setIncludeFeeLocked] = useState<boolean>(false);
   const currentAccount = useGetCurrentAccount();
-  const createTx = useCreateBellsTxCallback();
+  const createTx = useCreateWojakTxCallback();
   const createOrdTx = useCreateOrdTx();
   const navigate = useNavigate();
   const location = useLocation();
@@ -288,7 +288,7 @@ const CreateSend = () => {
               "wallet_page.amount_in_transactions"
             )}`}</div>
             <span className="text-sm font-medium">
-              {`${((currentAccount?.balance ?? 0) / 10 ** 8).toFixed(8)} BEL`}
+              {`${((currentAccount?.balance ?? 0) / 10 ** 8).toFixed(8)} WJK`}
             </span>
           </div>
         )}

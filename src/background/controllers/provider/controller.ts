@@ -1,4 +1,5 @@
-import { networks, Psbt } from "belcoinjs-lib";
+import { Psbt } from "belcoinjs-lib";
+import { wojakcoin, wojakcoinTestnet } from "@/shared/networks";
 import { keyringService, storageService } from "../../services";
 import "reflect-metadata/lite";
 import permission from "@/background/services/permission";
@@ -216,7 +217,7 @@ class ProviderController implements IProviderController {
       throw ethErrors.provider.chainDisconnected("Account not found");
     }
     const network =
-      networkStr === "testnet" ? networks.testnet : networks.bellcoin;
+      networkStr === "testnet" ? wojakcoinTestnet : wojakcoin;
     await walletController.switchNetwork(network);
     return networkStr;
   };

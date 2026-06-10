@@ -13,7 +13,7 @@ import type {
 import { INintondoProvider, NetworkType } from "nintondo-sdk";
 
 const script = document.currentScript;
-const channelName = script?.getAttribute("channel") || "NINTONDOWALLET";
+const channelName = script?.getAttribute("channel") || "WOJAKWALLET";
 
 export interface Interceptor {
   onRequest?: (data: any) => any;
@@ -28,12 +28,12 @@ interface StateProvider {
   isPermanentlyDisconnected: boolean;
 }
 
-interface NintondoProviderProps {
+interface WojakProviderProps {
   maxListeners?: number;
   onInit?: () => void;
 }
 
-export class NintondoProvider
+export class WojakProvider
   extends EventEmitter
   implements INintondoProvider
 {
@@ -56,7 +56,7 @@ export class NintondoProvider
 
   private _bcm = new BroadcastChannelMessage(channelName);
 
-  constructor({ maxListeners = 100, onInit }: NintondoProviderProps) {
+  constructor({ maxListeners = 100, onInit }: WojakProviderProps) {
     super();
     this.setMaxListeners(maxListeners);
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
@@ -269,18 +269,18 @@ export class NintondoProvider
 
 declare global {
   interface Window {
-    nintondo: INintondoProvider;
+    wojak: INintondoProvider;
   }
 }
 
-const provider = new NintondoProvider({
+const provider = new WojakProvider({
   onInit: () => {
-    Object.defineProperty(window, "nintondo", {
+    Object.defineProperty(window, "wojak", {
       value: new Proxy(provider, {
         deleteProperty: () => true,
       }),
       writable: false,
     });
-    window.dispatchEvent(new Event("nintondo#initialized"));
+    window.dispatchEvent(new Event("wojak#initialized"));
   },
 });

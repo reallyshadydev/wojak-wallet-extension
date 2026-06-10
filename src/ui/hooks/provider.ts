@@ -127,7 +127,7 @@ export const useDecodePsbtInputs = () => {
           label: `Output #${i}`,
           value: {
             text: `${f.address}`,
-            value: `${toFixed(f.value / 10 ** 8)} BEL`,
+            value: `${toFixed(f.value / 10 ** 8)} WJK`,
           },
         });
       });
@@ -154,19 +154,19 @@ export const useDecodePsbtInputs = () => {
             value = {
               anyonecanpay: true,
               inscriptions: foundInscriptions.map((i) => i.genesis),
-              value: `${toFixed(inputValue)} BEL`,
+              value: `${toFixed(inputValue)} WJK`,
             };
           } else {
             value = {
               anyonecanpay: true,
               text: `${outpoint.split("i")[0]}`,
-              value: `${toFixed(inputValue)} BEL`,
+              value: `${toFixed(inputValue)} WJK`,
             };
           }
         } else {
           value = {
             text: `${outpoint.split("i")[0]}`,
-            value: `${toFixed(inputValue)} BEL`,
+            value: `${toFixed(inputValue)} WJK`,
           };
         }
 

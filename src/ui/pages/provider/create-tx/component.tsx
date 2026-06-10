@@ -35,7 +35,7 @@ const CreateTx = () => {
     },
     {
       label: "Amount",
-      value: `${psbt.amount / 10 ** 8} BEL`,
+      value: `${psbt.amount / 10 ** 8} WJK`,
     },
     {
       label: "Fee Rate",

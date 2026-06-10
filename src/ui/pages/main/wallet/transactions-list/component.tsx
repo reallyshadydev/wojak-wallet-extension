@@ -157,7 +157,7 @@ const TransactionList = () => {
                       })}
                     >
                       {isIncome ? "+ " : "- "}
-                      {value} BEL
+                      {value} WJK
                     </div>
                     <div className="text-xs text-gray-400 text-right">
                       {parseFloat((currentPrice! * Number(value)).toFixed(6))} $

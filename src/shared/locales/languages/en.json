@@ -27,7 +27,7 @@
       "create_new_account": "Create New Account",
       "change_password": "Change Password",
       "network_settings": "Network Settings",
-      "receive_bel": "Receive BEL",
+      "receive_bel": "Receive WJK",
       "switch_wallet": "Switch Wallet",
       "transaction_info": "Transaction Info",
       "settings": "Settings",
@@ -162,7 +162,7 @@
       "inscription_id": "Inscription Id"
     },
     "create_send": {
-      "minimum_amount_error": "Minimum amount is 0.00001 BEL",
+      "minimum_amount_error": "Minimum amount is 0.00001 WJK",
       "fee_exceeds_amount_error": "Fee exceeds amount",
       "address_error": "Invalid receiver's address",
       "not_enough_money_error": "There's not enough money in your account",
@@ -233,8 +233,8 @@
   "hooks": {
     "transaction": {
       "insufficient_balance_0": "Insufficient balance. Non-Inscription balance",
-      "insufficient_balance_1": "BEL) is lower than",
-      "insufficient_balance_2": "BEL",
+      "insufficient_balance_1": "WJK) is lower than",
+      "insufficient_balance_2": "WJK",
       "too_many_utxos": "Too many UTXOs. You must consolidate them or use smaller amount to send",
       "too_long_mempool_chain": "Too long mempool chain. You must wait until it's confirmed"
     },
@@ -300,7 +300,7 @@
     "resolve": "Resolve",
     "reject": "Reject",
     "sign_request": "Sign request",
-    "send_bells": "Send bells",
+    "send_bells": "Send WJK",
     "sign": "Sign",
     "create_transaction": "Create transaction",
     "connecting": "Connecting",

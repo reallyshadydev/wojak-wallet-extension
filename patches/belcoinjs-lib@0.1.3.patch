@@ -1,0 +1,45 @@
+diff --git a/src/networks.js b/src/networks.js
+index 5d045938ed96fdceb26ee9e903b188f3c93fa2e3..8b02cc5ee65d313de7a1ab8acd01aba1a0940f00 100644
+--- a/src/networks.js
++++ b/src/networks.js
+@@ -1,25 +1,26 @@
+ 'use strict';
+ Object.defineProperty(exports, '__esModule', { value: true });
+ exports.testnet = exports.bellcoin = void 0;
++// PATCHED for WojakCoin — params from wojakcore src/chainparams.cpp
+ exports.bellcoin = {
+-  messagePrefix: 'Bells Signed Message:\n',
+-  bech32: 'bel',
++  messagePrefix: 'WojakCoin Signed Message:\n',
++  bech32: 'wjk',
+   bip32: {
+-    public: 0x02facafd,
+-    private: 0x02fac398,
++    public: 0x0488b21e,
++    private: 0x0488ade4,
+   },
+-  pubKeyHash: 25,
+-  scriptHash: 30,
+-  wif: 0x99,
++  pubKeyHash: 73,
++  scriptHash: 5,
++  wif: 201,
+ };
+ exports.testnet = {
+-  messagePrefix: 'Bells Signed Message:\n',
+-  bech32: 'tbel',
++  messagePrefix: 'WojakCoin Signed Message:\n',
++  bech32: 'twjk',
+   bip32: {
+-    public: 0x02facafd,
+-    private: 0x02fac398,
++    public: 0x043587cf,
++    private: 0x04358394,
+   },
+-  pubKeyHash: 33,
+-  scriptHash: 22,
+-  wif: 0x9e,
++  pubKeyHash: 111,
++  scriptHash: 196,
++  wif: 239,
+ };

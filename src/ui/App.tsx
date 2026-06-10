@@ -18,7 +18,7 @@ import PortMessage from "@/shared/utils/message/portMessage";
 import { ss } from "./utils";
 import { useInscriptionManagerContext } from "./utils/inscriptions-ctx";
 import { TailSpin } from "react-loading-icons";
-import { NINTONDO_URL } from "@/shared/constant";
+import { WOJAKCOIN_URL } from "@/shared/constant";
 import { browserTabsCreate } from "@/shared/utils/browser";
 
 export default function App() {
@@ -103,9 +103,9 @@ export default function App() {
     resetProvider();
   }, [selectedAccount, selectedWallet, resetProvider]);
 
-  const onOpenNintondo = async () => {
+  const onOpenWojak = async () => {
     await browserTabsCreate({
-      url: NINTONDO_URL,
+      url: WOJAKCOIN_URL,
       active: true,
     });
   };
@@ -113,10 +113,10 @@ export default function App() {
   return (
     <div>
       <div
-        onClick={onOpenNintondo}
+        onClick={onOpenWojak}
         className="uppercase text-center hidden standard:block font-medium text-xl mb-6 select-none cursor-pointer hover:underline"
       >
-        nintondo
+        wojakcoin
       </div>
       <div className="app">
         {isReady ? (

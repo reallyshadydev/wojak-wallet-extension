@@ -1,5 +1,6 @@
 import { isTestnet } from "@/ui/utils";
-import { Network, networks } from "belcoinjs-lib";
+import { Network } from "belcoinjs-lib";
+import { wojakcoin, wojakcoinTestnet } from "@/shared/networks";
 import { AddressType } from "bellhdw/src/hd/types";
 
 export const KEYRING_TYPE = {
@@ -15,8 +16,8 @@ export const IS_LINUX = /linux/i.test(navigator.userAgent);
 export const IS_WINDOWS = /windows/i.test(navigator.userAgent);
 
 export const NETOWRKS: { name: string; network: Network }[] = [
-  { name: "MAINNET", network: networks.bellcoin },
-  { name: "TESTNET", network: networks.testnet },
+  { name: "MAINNET", network: wojakcoin },
+  { name: "TESTNET", network: wojakcoinTestnet },
 ];
 
 export const ADDRESS_TYPES: {
@@ -25,23 +26,13 @@ export const ADDRESS_TYPES: {
   name: string;
   hdPath: string;
 }[] = [
-  {
-    value: AddressType.P2WPKH,
-    label: "P2WPKH",
-    name: "Native Segwit (P2WPKH)",
-    hdPath: "m/84'/0'/0'/0",
-  },
+  // WojakCoin (wojakcore) is a pre-segwit chain — only legacy P2PKH addresses
+  // are valid. Do not re-add P2WPKH/P2TR unless the chain activates segwit.
   {
     value: AddressType.P2PKH,
     label: "P2PKH",
     name: "Legacy (P2PKH)",
     hdPath: "m/44'/0'/0'/0",
-  },
-  {
-    value: AddressType.P2TR,
-    label: "P2TR",
-    name: "Taproot (P2TR)",
-    hdPath: "m/86'/0'/0'/0",
   },
 ];
 
@@ -56,32 +47,32 @@ export const EVENTS = {
   },
 };
 
-const NINTONDO_API_URL = process.env.API_URL ?? "https://api.nintondo.io/api";
+// electrs REST API — serves /blocks/tip/height etc. at the root (no /api prefix)
+const WOJAKCOIN_API_URL = process.env.API_URL ?? "https://api.wojakcoin.cash";
 
-const CONTENT_URL =
-  process.env.CONTENT_URL ?? "https://content.nintondo.io/api/pub";
-const HISTORY_URL =
-  process.env.HISTORY_URL ?? "https://history.nintondo.io/pub";
+// ord server — serves /content/<id> and /preview/<id>
+const CONTENT_URL = process.env.CONTENT_URL ?? "https://ord.wojakcoin.cash";
+const HISTORY_URL = process.env.HISTORY_URL ?? "https://ord.wojakcoin.cash";
 
-export const NINTONDO_URL = "https://nintondo.io";
-export const SPLITTER_URL = NINTONDO_URL + "/belinals/splitter";
+export const WOJAKCOIN_URL = "https://wojakcoin.cash";
+export const SPLITTER_URL = WOJAKCOIN_URL + "/splitter";
 
-const TESTNET_NINTONDO_API_URL =
-  process.env.TESTNET_API_URL ?? "https://testnet.nintondo.io/electrs";
+const TESTNET_WOJAKCOIN_API_URL =
+  process.env.TESTNET_API_URL ?? "https://testnet.wojakcoin.cash/electrs";
 const TESTNET_CONTENT_URL =
-  process.env.TESTNET_CONTENT_URL ?? "https://testnet.nintondo.io/api/pub";
+  process.env.TESTNET_CONTENT_URL ?? "https://testnet.wojakcoin.cash/api/pub";
 
 export const getContentUrl = (network: Network) =>
   isTestnet(network) ? TESTNET_CONTENT_URL : CONTENT_URL;
 
 export const getApiUrl = (network: Network) =>
-  isTestnet(network) ? TESTNET_NINTONDO_API_URL : NINTONDO_API_URL;
+  isTestnet(network) ? TESTNET_WOJAKCOIN_API_URL : WOJAKCOIN_API_URL;
 
 export const getHistoryUrl = (network: Network) =>
   isTestnet(network) ? TESTNET_HISTORY_URL : HISTORY_URL;
 
 const TESTNET_HISTORY_URL =
-  process.env.TESTNET_HISTORY_URL ?? "https://testnet.nintondo.io/history/pub";
+  process.env.TESTNET_HISTORY_URL ?? "https://testnet.wojakcoin.cash/history/pub";
 
 export const DEFAULT_FEES = {
   fast: 500,

@@ -71,9 +71,9 @@ const useTransactionManager = (): TransactionManagerContextType | undefined => {
   }, [apiController]);
 
   const updatePrice = useCallback(async () => {
-    const data = await apiController.getBELPrice();
-    if (data?.bellscoin) {
-      setCurrentPrice(data.bellscoin.usd);
+    const data = await apiController.getWJKPrice();
+    if (data?.wojakcoin) {
+      setCurrentPrice(data.wojakcoin.usd);
     }
   }, [apiController]);
 

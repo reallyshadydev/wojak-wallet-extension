@@ -30,7 +30,7 @@ export interface IApiController {
     address: string,
     txid: string
   ): Promise<ITransaction[] | undefined>;
-  getBELPrice(): Promise<{ bellscoin?: { usd: number } } | undefined>;
+  getWJKPrice(): Promise<{ wojakcoin?: { usd: number } } | undefined>;
   getLastBlockBEL(): Promise<number | undefined>;
   getFees(): Promise<{ fast: number; slow: number } | undefined>;
   getAccountStats(address: string): Promise<IAccountStats | undefined>;
@@ -152,7 +152,7 @@ class ApiController implements IApiController {
     }
   }
 
-  async getBELPrice() {
+  async getWJKPrice() {
     const data = await this.fetch<{ price_usd: number }>({
       path: "/last-price",
       service: "electrs",
@@ -161,7 +161,7 @@ class ApiController implements IApiController {
       return undefined;
     }
     return {
-      bellscoin: {
+      wojakcoin: {
         usd: data.price_usd,
       },
     };
