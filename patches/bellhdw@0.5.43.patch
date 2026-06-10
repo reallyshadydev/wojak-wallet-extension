@@ -1,0 +1,13 @@
+diff --git a/src/hd/private.js b/src/hd/private.js
+index b79ab5fb6fbfd1ac7d5b7ba4e82dd5d31d67f639..e2f3e130c7a6e4ea4812840bbb77b4b2f43d1f6f 100644
+--- a/src/hd/private.js
++++ b/src/hd/private.js
+@@ -292,7 +292,7 @@ class HDPrivateKey extends base_1.BaseWallet {
+   async fromMnemonic(opts) {
+     const seed = await (0, nintondo_bip39_1.mnemonicToSeed)(
+       opts.mnemonic,
+-      opts.passphrase ?? "bells"
++      opts.passphrase ?? "wojak"
+     );
+     this.fromSeed({
+       seed,

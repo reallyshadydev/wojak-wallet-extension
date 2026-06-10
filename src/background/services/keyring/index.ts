@@ -400,6 +400,17 @@ class KeyringService {
         sighashTypes: undefined,
       }));
 
+    // Allow the sighash type declared on each PSBT input (e.g.
+    // SINGLE|ANYONECANPAY used by marketplace listings). belcoinjs only
+    // whitelists SIGHASH_ALL by default, so without this, listing PSBTs
+    // from dapps that don't pass toSignInputs fail to sign.
+    inputs = inputs.map((input) => {
+      const declared = psbt.data.inputs[input.index]?.sighashType;
+      return input.sighashTypes === undefined && declared !== undefined
+        ? { ...input, sighashTypes: [declared] }
+        : input;
+    });
+
     if (
       keyring.addressType === AddressType.P2TR ||
       keyring.addressType === AddressType.M44_P2TR
@@ -449,6 +460,9 @@ class KeyringService {
       );
     } catch (e) {
       console.error(e);
+      // Surface signing failures to the caller — otherwise the dapp
+      // receives an unsigned PSBT with no indication of what went wrong.
+      throw e;
     }
   }
 
