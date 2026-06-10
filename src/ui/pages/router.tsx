@@ -34,7 +34,6 @@ import InscribeTransfer from "./provider/inscribe-transfer";
 import MultiPsbtSign from "./provider/multi-psbt-sign";
 import ChangePassword from "./main/settings/security/change-password";
 import Security from "./main/settings/security";
-import Advanced from "./main/settings/security/advanced";
 import WalletSettings from "./main/settings/wallet/component";
 import NetworkSettings from "./main/settings/wallet/network/component";
 import Home from "./main/home";
@@ -81,7 +80,6 @@ export const authenticatedRouter = createHashRouter([
       { path: "connected-sites", element: <ConnectedSites /> },
       { path: "language", element: <Language /> },
       { path: "security", element: <Security /> },
-      { path: "advanced", element: <Advanced /> },
       { path: "inscription-details", element: <InscriptionDetails /> },
       { path: "inscriptions", element: <Inscriptions /> },
       { path: "wallet-settings", element: <WalletSettings /> },

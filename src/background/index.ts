@@ -69,11 +69,15 @@ browserRuntimeOnConnect((port: any) => {
     });
 
     const broadcastCallback = async (data: any) => {
-      await pm.request({
-        type: "broadcast",
-        method: data.method,
-        params: data.params,
-      });
+      try {
+        await pm.request({
+          type: "broadcast",
+          method: data.method,
+          params: data.params,
+        });
+      } catch {
+        // Port disconnected mid-broadcast (popup closed) — nothing to do.
+      }
     };
 
     eventBus.addEventListener(EVENTS.broadcastToUI, broadcastCallback);
