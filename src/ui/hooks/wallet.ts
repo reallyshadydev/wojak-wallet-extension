@@ -194,8 +194,18 @@ export const useUpdateCurrentAccountBalance = () => {
 
     if (!res) return;
 
+    // Spendable = total minus inscription-bearing outputs, so the user can see
+    // what's actually safe to send without touching inscriptions.
+    const spendableUtxos = await apiController.getSpendableUtxos(
+      currentAccount.address
+    );
+    const spendableBalance = Array.isArray(spendableUtxos)
+      ? spendableUtxos.reduce((acc, u) => acc + u.value, 0)
+      : undefined;
+
     await updateSelectedAccount({
       balance: res.balance,
+      spendableBalance,
       inscriptionCounter: res.count,
       inscriptionBalance: res.amount / 10 ** 8,
     });

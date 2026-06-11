@@ -56,6 +56,12 @@ const CreateSend = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const { network } = useAppState(ss(["network"]));
 
+  // Spendable balance excludes inscription-bearing outputs so the user can
+  // never Max/overspend into an inscription. Falls back to total balance only
+  // until the spendable figure has been computed.
+  const spendableBalanceSats =
+    currentAccount?.spendableBalance ?? currentAccount?.balance ?? 0;
+
   const send = async ({
     address,
     amount: amountStr,
@@ -64,7 +70,7 @@ const CreateSend = () => {
   }: FormType) => {
     try {
       setLoading(true);
-      const balance = currentAccount?.balance ?? 0;
+      const balance = spendableBalanceSats;
       const amount = parseFloat(amountStr);
 
       if (typeof getAddressType(address, network) === "undefined") {
@@ -180,7 +186,7 @@ const CreateSend = () => {
       ...prev,
       amount: normalizeAmount(e.target.value),
     }));
-    if (currentAccount.balance / 10 ** 8 > Number(e.target.value)) {
+    if (spendableBalanceSats / 10 ** 8 > Number(e.target.value)) {
       setIncludeFeeLocked(false);
     } else {
       setIncludeFeeLocked(true);
@@ -193,10 +199,10 @@ const CreateSend = () => {
 
   const onMaxClick: MouseEventHandler<HTMLButtonElement> = (e) => {
     e.preventDefault();
-    if (currentAccount?.balance) {
+    if (spendableBalanceSats > 0) {
       setFormData((prev) => ({
         ...prev,
-        amount: (currentAccount.balance! / 10 ** 8).toString(),
+        amount: (spendableBalanceSats / 10 ** 8).toString(),
         includeFeeInAmount: true,
       }));
       setIncludeFeeLocked(true);
@@ -284,11 +290,9 @@ const CreateSend = () => {
       <div>
         {!inscriptionTransaction && (
           <div className="flex justify-between py-2 px-4 mb-11">
-            <div className="text-xs uppercase text-gray-400">{`${t(
-              "wallet_page.amount_in_transactions"
-            )}`}</div>
+            <div className="text-xs uppercase text-gray-400">Spendable</div>
             <span className="text-sm font-medium">
-              {`${((currentAccount?.balance ?? 0) / 10 ** 8).toFixed(8)} WJK`}
+              {`${(spendableBalanceSats / 10 ** 8).toFixed(8)} WJK`}
             </span>
           </div>
         )}

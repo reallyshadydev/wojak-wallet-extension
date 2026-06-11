@@ -32,6 +32,7 @@ import SignPsbt from "./provider/sign-psbt";
 import TokensComponent from "./main/tokens/component";
 import InscribeTransfer from "./provider/inscribe-transfer";
 import MultiPsbtSign from "./provider/multi-psbt-sign";
+import Inscribe from "./provider/inscribe";
 import ChangePassword from "./main/settings/security/change-password";
 import Security from "./main/settings/security";
 import WalletSettings from "./main/settings/wallet/component";
@@ -99,6 +100,9 @@ export const authenticatedRouter = createHashRouter([
       { path: "signPsbt", element: <SignPsbt /> },
       { path: "inscribeTransfer", element: <InscribeTransfer /> },
       { path: "multiPsbtSign", element: <MultiPsbtSign /> },
+      { path: "inscribe", element: <Inscribe /> },
+      { path: "inscribeBatch", element: <Inscribe /> },
+      { path: "inscribeBatchPresign", element: <Inscribe /> },
       { path: "switchNetwork", element: <SwitchNetwork /> },
     ],
   },

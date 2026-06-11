@@ -37,6 +37,7 @@ export interface IKeyringController {
     network: Network
   ): Promise<string>;
   signPsbtBase64(psbtBase64: string): Promise<string>;
+  signPsbtWithoutFinalizingBase64(psbtBase64: string): Promise<string>;
 }
 
 class KeyringController implements IKeyringController {
@@ -92,6 +93,18 @@ class KeyringController implements IKeyringController {
   ): Promise<string> {
     const psbt = Psbt.fromBase64(psbtBase64);
     keyringService.signPsbt(psbt, disableTweakSigner);
+    return psbt.toBase64();
+  }
+
+  async signPsbtWithoutFinalizingBase64(psbtBase64: string): Promise<string> {
+    const psbt = Psbt.fromBase64(psbtBase64);
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore non-segwit signing needs this flag (mirrors provider inscribe)
+    psbt.__CACHE.__UNSAFE_SIGN_NONSEGWIT = true;
+    await keyringService.signPsbtWithoutFinalizing(psbt);
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    psbt.__CACHE.__UNSAFE_SIGN_NONSEGWIT = false;
     return psbt.toBase64();
   }
 

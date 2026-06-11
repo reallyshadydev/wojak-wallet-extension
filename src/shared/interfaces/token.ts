@@ -8,7 +8,7 @@
 // }
 
 export interface ITransferToken {
-  p: "bel-20";
+  p: "wjk-20";
   op: "transfer";
   tick: string;
   amt: string;

@@ -4,20 +4,19 @@ import InscriptionCard from "@/ui/components/inscription-card";
 import Pagination from "@/ui/components/pagination";
 import { t } from "i18next";
 import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/24/outline";
-import { useGetCurrentAccount } from "@/ui/states/walletState";
 import { useInscriptionManagerContext } from "@/ui/utils/inscriptions-ctx";
 import { TailSpin } from "react-loading-icons";
 
 const Inscriptions = () => {
   const {
     inscriptions,
+    inscriptionsCount,
     currentPage,
     setCurrentPage,
     loading: managerLoading,
     searchInscriptions,
     updateInscriptions,
   } = useInscriptionManagerContext();
-  const currentAccount = useGetCurrentAccount();
 
   const changePage = async (page: number) => {
     if (!managerLoading) setCurrentPage(page);
@@ -28,10 +27,7 @@ const Inscriptions = () => {
     updateInscriptions(currentPage);
   }, [currentPage, updateInscriptions]);
 
-  if (
-    (currentAccount?.inscriptionCounter === undefined && managerLoading) ||
-    !inscriptions
-  )
+  if ((managerLoading && !inscriptions) || !inscriptions)
     return <TailSpin className="animate-spin" />;
 
   return (
@@ -56,7 +52,7 @@ const Inscriptions = () => {
             onPageChange={changePage}
             pageCount={Math.ceil(
               ((typeof searchInscriptions === "undefined"
-                ? currentAccount?.inscriptionCounter
+                ? inscriptionsCount
                 : searchInscriptions?.length) ?? 0) / 6
             )}
             visiblePageButtonsCount={5}

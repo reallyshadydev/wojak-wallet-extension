@@ -28,6 +28,10 @@ const AccountPanel = () => {
   const [integerPartBalance, decimalPartBalance] =
     calcBalanceLength(balance).split(".");
 
+  const spendableBalance = currentAccount?.spendableBalance;
+  const hasLockedFunds =
+    spendableBalance !== undefined && spendableBalance < cardinalBalance;
+
   return (
     <div className={s.accPanel}>
       <div className="relative w-full flex">
@@ -59,6 +63,12 @@ const AccountPanel = () => {
           ) : undefined
         ) : undefined}
       </div>
+
+      {hasLockedFunds ? (
+        <div className="text-sm text-gray-400">
+          {calcBalanceLength(spendableBalance! / 10 ** 8)} WJK spendable
+        </div>
+      ) : undefined}
 
       <SplitWarn
         extraWidth

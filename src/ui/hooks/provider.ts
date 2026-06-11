@@ -106,7 +106,7 @@ export const useDecodePsbtInputs = () => {
       const inputFields: IField[] = [];
       const outputFields: IField[] = [];
       const inputLocations = psbt.txInputs.map(
-        (f) => f.hash.reverse().toString("hex") + ":" + f.index
+        (f) => Buffer.from(f.hash).reverse().toString("hex") + ":" + f.index
       );
       const inputValues = await apiController.getUtxoValues(inputLocations);
       if (!inputValues) {
@@ -134,7 +134,9 @@ export const useDecodePsbtInputs = () => {
 
       for (const [i, txInput] of psbt.txInputs.entries()) {
         const outpoint =
-          txInput.hash.reverse().toString("hex") + ":" + txInput.index;
+          Buffer.from(txInput.hash).reverse().toString("hex") +
+          ":" +
+          txInput.index;
         const isImportant = options?.toSignInputs
           ?.map((f) => f.index)
           .includes(i);

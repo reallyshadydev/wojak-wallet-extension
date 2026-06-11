@@ -64,9 +64,9 @@ const MintTransferModal: FC<MintTransferModalProps> = ({
       }
       await inscribeTransferToken(
         {
-          p: "bel-20",
+          p: "wjk-20",
           op: "transfer",
-          tick: selectedMintToken?.tick,
+          tick: selectedMintToken.tick.toLowerCase(),
           amt: amount,
         },
         feeRate

@@ -247,6 +247,63 @@ export class WojakProvider
     });
   };
 
+  inscribe = async (payload: {
+    contentType: string;
+    dataHex: string;
+    receiver?: string;
+    feeRate: number;
+  }): Promise<{ txids: string[]; inscriptionId: string }> => {
+    return this._request({
+      // not part of the upstream INintondoProvider type yet
+      method: "inscribe" as any,
+      params: [payload] as any,
+    }) as unknown as Promise<{ txids: string[]; inscriptionId: string }>;
+  };
+
+  inscribeBatch = async (
+    payloads: {
+      contentType: string;
+      dataHex: string;
+      receiver?: string;
+      feeRate: number;
+    }[]
+  ): Promise<{
+    results: { txids: string[]; inscriptionId: string }[];
+  }> => {
+    return this._request({
+      method: "inscribeBatch" as any,
+      params: [payloads] as any,
+    }) as unknown as Promise<{
+      results: { txids: string[]; inscriptionId: string }[];
+    }>;
+  };
+
+  inscribeBatchPresign = async (
+    payloads: {
+      contentType: string;
+      dataHex: string;
+      receiver?: string;
+      feeRate: number;
+    }[]
+  ): Promise<{
+    inscriptions: { inscriptionId: string; txs: string[]; revealTxid: string }[];
+    receiver: string;
+    network: string;
+  }> => {
+    return this._request({
+      method: "inscribeBatchPresign" as any,
+      params: [payloads] as any,
+    }) as unknown as Promise<{
+      inscriptions: {
+        inscriptionId: string;
+        txs: string[];
+        revealTxid: string;
+      }[];
+      receiver: string;
+      network: string;
+    }>;
+  };
+
   getVersion = async () => {
     return this._request({
       method: "getVersion",

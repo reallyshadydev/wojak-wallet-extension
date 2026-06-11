@@ -31,6 +31,7 @@ const useInscriptionManager = ():
 
   const [loading, setLoading] = useState<boolean>(false);
   const [currentPage, setCurrentPage] = useState<number>(1);
+  const [inscriptionsCount, setInscriptionsCount] = useState<number>(0);
 
   const updateTokens = useCallback(async () => {
     if (!currentAccount?.address) return;
@@ -50,8 +51,10 @@ const useInscriptionManager = ():
       );
       if (!response || !response.inscriptions.length) {
         setInscriptions([]);
+        if (response) setInscriptionsCount(response.count);
       } else {
         setInscriptions(response.inscriptions);
+        setInscriptionsCount(response.count);
         setCurrentPage(page);
       }
       setLoading(false);
@@ -70,6 +73,7 @@ const useInscriptionManager = ():
 
   return {
     inscriptions,
+    inscriptionsCount,
     loading,
     setCurrentPage,
     currentPage,
@@ -88,6 +92,7 @@ const useInscriptionManager = ():
 
 interface InscriptionsManagerContextType {
   inscriptions: ContentInscription[] | undefined;
+  inscriptionsCount: number;
   loading: boolean;
   setCurrentPage: (page: number) => void;
   currentPage: number;
@@ -125,6 +130,7 @@ export const useInscriptionManagerContext =
     if (!context) {
       return {
         inscriptions: undefined,
+        inscriptionsCount: 0,
         loading: false,
         setCurrentPage: () => {},
         currentPage: 1,

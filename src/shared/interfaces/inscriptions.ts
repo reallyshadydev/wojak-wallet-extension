@@ -60,3 +60,16 @@ export interface FindInscriptionsByOutpointResponseItem {
   height: number;
   genesis: string;
 }
+
+// JSON shape returned by upstream ord at /inscription/<id> (Accept: json)
+export interface OrdInscriptionInfo {
+  id: string;
+  number: number;
+  address: string;
+  content_type: string;
+  content_length: number;
+  height: number;
+  timestamp: number;
+  satpoint: string;
+  value: number;
+}

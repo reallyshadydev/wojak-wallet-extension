@@ -5,8 +5,10 @@ import type {
 } from "@/shared/interfaces/api";
 import {
   ContentDetailedInscription,
+  ContentInscription,
   ContentInscriptionResopnse,
   FindInscriptionsByOutpointResponseItem,
+  OrdInscriptionInfo,
 } from "@/shared/interfaces/inscriptions";
 import { IToken } from "@/shared/interfaces/token";
 import { customFetch, fetchProps } from "@/shared/utils";
@@ -19,11 +21,20 @@ export interface UtxoQueryParams {
   amount?: number;
 }
 
+// 0.001 WJK outputs carry inscriptions; they must never be spent as funding.
+// Used as a fallback guard in case the ord index briefly lags.
+const CARRIER_SATS = 100_000;
+
 export interface IApiController {
   getUtxos(
     address: string,
     params?: UtxoQueryParams
   ): Promise<ApiUTXO[] | undefined>;
+  getSpendableUtxos(
+    address: string,
+    params?: { hex?: boolean }
+  ): Promise<ApiUTXO[] | undefined>;
+  getProtectedOutpoints(address: string): Promise<Set<string>>;
   pushTx(rawTx: string): Promise<{ txid?: string; error?: string }>;
   getTransactions(address: string): Promise<ITransaction[] | undefined>;
   getPaginatedTransactions(
@@ -83,6 +94,45 @@ class ApiController implements IApiController {
     if (Array.isArray(data)) {
       return data;
     }
+  }
+
+  // Outpoints ("txid:vout") that currently hold an inscription, per the ord
+  // index. Authoritative source of what must NOT be spent as plain funds.
+  async getProtectedOutpoints(address: string): Promise<Set<string>> {
+    const res = await this.fetch<{ outputs?: string[] }>({
+      path: `/address/${address}`,
+      service: "content",
+      headers: { Accept: "application/json" },
+    });
+    return new Set(res?.outputs ?? []);
+  }
+
+  // Like getUtxos but removes inscription-bearing outputs (ord) and 0.001 WJK
+  // carriers (fallback), so callers can fund regular sends without ever
+  // accidentally spending an inscription.
+  async getSpendableUtxos(
+    address: string,
+    params?: { hex?: boolean }
+  ): Promise<ApiUTXO[] | undefined> {
+    const all = await this.getUtxos(address);
+    if (!Array.isArray(all)) return all;
+
+    const protectedOutpoints = await this.getProtectedOutpoints(address);
+    const safe = all.filter(
+      (u) =>
+        !protectedOutpoints.has(`${u.txid}:${u.vout}`) &&
+        u.value !== CARRIER_SATS
+    );
+
+    if (!params?.hex) return safe;
+
+    const hexByTxid = new Map<string, string | undefined>();
+    await Promise.all(
+      [...new Set(safe.map((u) => u.txid))].map(async (txid) => {
+        hexByTxid.set(txid, await this.getTransactionHex(txid));
+      })
+    );
+    return safe.map((u) => ({ ...u, hex: u.hex ?? hexByTxid.get(u.txid) }));
   }
 
   async getFees() {
@@ -179,10 +229,19 @@ class ApiController implements IApiController {
   }
 
   async getTokens(address: string): Promise<IToken[] | undefined> {
-    return await this.fetch<IToken[]>({
+    const data = await this.fetch<IToken[]>({
       path: `/address/${address}/tokens`,
-      service: "electrs",
+      service: "token",
     });
+    if (!Array.isArray(data)) return data;
+    // The indexer omits the per-token `transfers` array when there are none;
+    // normalize so the UI can safely read `token.transfers`.
+    return data.map((t) => ({
+      ...t,
+      transfers: t.transfers ?? [],
+      transfers_count: t.transfers_count ?? 0,
+      transferable_balance: t.transferable_balance ?? "0",
+    }));
   }
 
   async getTransaction(txid: string) {
@@ -210,38 +269,135 @@ class ApiController implements IApiController {
       },
       service: "electrs",
     });
-    return result?.values;
+    if (result?.values) return result.values;
+
+    // Fallback for electrs servers without the custom /prev endpoint:
+    // resolve each outpoint's value from the standard /tx/{txid} response.
+    try {
+      const uniqueTxids = [...new Set(outpoints.map((o) => o.split(":")[0]))];
+      const txById = new Map(
+        await Promise.all(
+          uniqueTxids.map(
+            async (txid) =>
+              [txid, await this.getTransaction(txid)] as const
+          )
+        )
+      );
+      return outpoints.map((o) => {
+        const [txid, voutStr] = o.split(":");
+        const value = txById.get(txid)?.vout?.[Number(voutStr)]?.value;
+        if (typeof value !== "number") throw new Error(`no value for ${o}`);
+        return value;
+      });
+    } catch {
+      return undefined;
+    }
   }
 
-  async getContentPaginatedInscriptions(address: string, page: number) {
-    return await this.fetch<ContentInscriptionResopnse>({
-      path: `/search?account=${address}&page_size=6&page=${page}`,
+  // --- vanilla ord (ord.wojakcoin.cash) helpers -------------------------
+  // The deployed ord server is upstream ord, which has no account-based
+  // search API. Instead it exposes JSON (with `Accept: application/json`) at
+  // /address/<addr> (inscription ids owned) and /inscription/<id> (metadata).
+  private fetchOrdJson = async <T>(path: string): Promise<T | undefined> => {
+    return await this.fetch<T>({
+      path,
       service: "content",
+      headers: { Accept: "application/json" },
     });
+  };
+
+  private async getOrdInscriptionInfo(
+    inscriptionId: string
+  ): Promise<OrdInscriptionInfo | undefined> {
+    return await this.fetchOrdJson<OrdInscriptionInfo>(
+      `/inscription/${inscriptionId}`
+    );
+  }
+
+  private async getOrdAddressInscriptionIds(
+    address: string
+  ): Promise<string[]> {
+    const res = await this.fetchOrdJson<{ inscriptions?: string[] }>(
+      `/address/${address}`
+    );
+    return res?.inscriptions ?? [];
+  }
+
+  async getContentPaginatedInscriptions(
+    address: string,
+    page: number
+  ): Promise<ContentInscriptionResopnse | undefined> {
+    const ids = await this.getOrdAddressInscriptionIds(address);
+    const count = ids.length;
+    if (!count) return { pages: 0, count: 0, inscriptions: [] };
+
+    const pageSize = 6;
+    const safePage = Math.max(1, page);
+    const pageIds = ids.slice((safePage - 1) * pageSize, safePage * pageSize);
+
+    const inscriptions = (
+      await Promise.all(
+        pageIds.map(async (id) => {
+          const info = await this.getOrdInscriptionInfo(id);
+          if (!info) return undefined;
+          return {
+            number: info.number,
+            id: info.id,
+            file_type: info.content_type,
+            created: info.timestamp,
+          } as ContentInscription;
+        })
+      )
+    ).filter((i): i is ContentInscription => i !== undefined);
+
+    return { pages: Math.ceil(count / pageSize), count, inscriptions };
   }
 
   async searchContentInscriptionByInscriptionId(inscriptionId: string) {
-    return await this.fetch<ContentDetailedInscription>({
-      path: `/${inscriptionId}/info`,
-      service: "content",
-    });
+    const info = await this.getOrdInscriptionInfo(inscriptionId);
+    if (!info) return undefined;
+    return {
+      number: info.number,
+      id: info.id,
+      file_type: info.content_type,
+      mime: info.content_type,
+      file_size: info.content_length,
+      created: info.timestamp,
+      creation_block: info.height,
+      invalid_token_reason: null,
+    } as ContentDetailedInscription;
   }
 
   async searchContentInscriptionByInscriptionNumber(
     address: string,
     number: number
   ) {
-    return await this.fetch<ContentInscriptionResopnse>({
-      path: `/search?account=${address}&page_size=6&page=1&from=${number}&to=${number}`,
-      service: "content",
-    });
+    const ids = await this.getOrdAddressInscriptionIds(address);
+    const matches = (
+      await Promise.all(ids.map((id) => this.getOrdInscriptionInfo(id)))
+    ).filter((i): i is OrdInscriptionInfo => !!i && i.number === number);
+
+    return {
+      pages: 1,
+      count: matches.length,
+      inscriptions: matches.map((info) => ({
+        number: info.number,
+        id: info.id,
+        file_type: info.content_type,
+        created: info.timestamp,
+      })),
+    } as ContentInscriptionResopnse;
   }
 
   async getLocationByInscriptionId(inscriptionId: string) {
-    return await this.fetch<{ location: string; owner: string }>({
-      path: `/location/${inscriptionId}`,
-      service: "electrs",
-    });
+    const info = await this.getOrdInscriptionInfo(inscriptionId);
+    if (!info) return undefined;
+    // ord satpoint is "txid:vout:offset"; parseLocation() splits on "i".
+    const [txid, vout, offset] = info.satpoint.split(":");
+    return {
+      location: `${txid}i${vout}i${offset ?? 0}`,
+      owner: info.address,
+    };
   }
 
   async findInscriptionsByOutpoint(data: {

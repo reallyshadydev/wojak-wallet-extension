@@ -39,17 +39,12 @@ export function useCreateWojakTxCallback() {
 
     let totalAmount = toAmount + (receiverToPayFee ? 0 : fee);
 
-    let utxos = await apiController.getUtxos(fromAddress, {
-      amount: totalAmount,
-    });
+    // Inscription-aware: never fund a plain send from inscription outputs.
+    const utxos = await apiController.getSpendableUtxos(fromAddress);
 
     if ((utxos?.length ?? 0) > 5 && !receiverToPayFee) {
       fee = gptFeeCalculate(utxos!.length, 2, feeRate);
       totalAmount = toAmount + (receiverToPayFee ? 0 : fee);
-
-      utxos = await apiController.getUtxos(fromAddress, {
-        amount: totalAmount,
-      });
     }
 
     if (!Array.isArray(utxos)) {
@@ -118,9 +113,8 @@ export function useCreateOrdTx() {
 
     const fee = gptFeeCalculate(3, 2, feeRate);
 
-    const utxos = await apiController.getUtxos(fromAddress, {
-      amount: fee,
-    });
+    // Fee funding must not pull in other inscription outputs.
+    const utxos = await apiController.getSpendableUtxos(fromAddress);
     if (!utxos) {
       throw new Error(
         `${t("hooks.transaction.insufficient_balance_0")} (${satoshisToAmount(
@@ -158,8 +152,8 @@ export const useSendTransferTokens = () => {
   return async (toAddress: string, txIds: ITransfer[], feeRate: number) => {
     if (!currentAccount || !currentAccount.address) return;
     const fee = gptFeeCalculate(txIds.length + 1, txIds.length + 1, feeRate);
-    const utxos = await apiController.getUtxos(currentAccount.address, {
-      amount: fee,
+    // Fee funding for a token transfer must skip inscription carriers.
+    const utxos = await apiController.getSpendableUtxos(currentAccount.address, {
       hex: true,
     });
     if (!utxos) {
