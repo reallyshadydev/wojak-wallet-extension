@@ -278,18 +278,35 @@ export async function buildInscriptionChain(
     numBaseOutputs: number
   ) => {
     const p2shCarry = p2sh ? INSCRIPTION_OUTPUT_SATS : 0;
+    const MAX_FUNDING_INPUTS = 25;
     let inputs: ChainUtxo[] = [];
     let fee = 0;
-    for (let n = 1; n <= 25; n++) {
+    for (let n = 1; n <= MAX_FUNDING_INPUTS; n++) {
       fee = estimateFee(n, p2sh, numBaseOutputs + 1, feeRate);
       const needed = baseOutputsValue + fee - p2shCarry;
       inputs = pool.take(Math.max(needed, 1));
+      // Converged: the assumed input count covers what we actually took.
       if (inputs.length <= n) break;
-      inputs.forEach((u) => pool.add(u));
-      fee = estimateFee(inputs.length, p2sh, numBaseOutputs + 1, feeRate);
+      // Otherwise the fee estimate was too low for the real input count; put
+      // them back and retry with the larger count. On the final iteration this
+      // restore must NOT run, or `inputs` would stay in the pool AND be added
+      // to this tx, producing a double-spend.
+      if (n < MAX_FUNDING_INPUTS) {
+        inputs.forEach((u) => pool.add(u));
+      }
     }
-    const totalIn = inputs.reduce((acc, u) => acc + u.value, 0) + p2shCarry;
+
+    // If we still need more than the cap, the wallet is too fragmented to fund
+    // this tx in one go. Selected inputs were already removed from the pool, so
+    // bail loudly instead of silently broadcasting a double-spend.
     fee = estimateFee(inputs.length, p2sh, numBaseOutputs + 1, feeRate);
+    const totalIn = inputs.reduce((acc, u) => acc + u.value, 0) + p2shCarry;
+    if (inputs.length > MAX_FUNDING_INPUTS || totalIn < baseOutputsValue + fee) {
+      throw new Error(
+        "Too many small UTXOs to fund this inscription — consolidate your " +
+          "WJK into fewer outputs and try again."
+      );
+    }
 
     for (const u of inputs) {
       psbt.addInput({
