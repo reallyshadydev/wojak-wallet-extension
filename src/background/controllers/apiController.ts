@@ -10,7 +10,7 @@ import {
   FindInscriptionsByOutpointResponseItem,
   OrdInscriptionInfo,
 } from "@/shared/interfaces/inscriptions";
-import { IToken } from "@/shared/interfaces/token";
+import { IToken, ITransfer } from "@/shared/interfaces/token";
 import { customFetch, fetchProps } from "@/shared/utils";
 import { storageService } from "../services";
 import { DEFAULT_FEES } from "@/shared/constant";
@@ -228,20 +228,128 @@ class ApiController implements IApiController {
     }
   }
 
+  private outpointToInscriptionId(
+    outpoint: string | { txid: string; vout: number }
+  ): string {
+    if (typeof outpoint === "string") {
+      if (outpoint.includes("i")) return outpoint;
+      const colon = outpoint.lastIndexOf(":");
+      if (colon > 0) {
+        return `${outpoint.slice(0, colon)}i${outpoint.slice(colon + 1)}`;
+      }
+      return outpoint;
+    }
+    return `${outpoint.txid}i${outpoint.vout}`;
+  }
+
+  private mapIndexerTransfers(
+    transfers:
+      | Array<{ amount: string; outpoint: string | { txid: string; vout: number } }>
+      | ITransfer[]
+      | undefined
+  ): ITransfer[] {
+    if (!transfers?.length) return [];
+    return transfers.map((t) => {
+      if ("inscription_id" in t) return t;
+      return {
+        inscription_id: this.outpointToInscriptionId(t.outpoint),
+        amount: String(t.amount),
+      };
+    });
+  }
+
+  private async getTokenBalanceFromIndexer(
+    address: string,
+    tick: string
+  ): Promise<ITransfer[] | undefined> {
+    const data = await this.fetch<{
+      transfers?: Array<{
+        amount: string;
+        outpoint: string | { txid: string; vout: number };
+      }>;
+    }>({
+      path: `/address/${address}/${encodeURIComponent(tick)}/balance`,
+      service: "token",
+    });
+    const transfers = this.mapIndexerTransfers(data?.transfers);
+    return transfers.length ? transfers : undefined;
+  }
+
+  // Fallback when the indexer list/balance APIs omit transfer outpoints.
+  private async discoverTokenTransfersFromOrd(
+    address: string,
+    tick: string
+  ): Promise<ITransfer[]> {
+    const ids = await this.getOrdAddressInscriptionIds(address);
+    if (!ids.length) return [];
+
+    const normalizedTick = tick.toLowerCase();
+    const transfers = await Promise.all(
+      ids.map(async (id): Promise<ITransfer | undefined> => {
+        const content = await this.fetch<string>({
+          path: `/content/${id}`,
+          service: "content",
+          json: false,
+        });
+        if (!content) return;
+        try {
+          const parsed = JSON.parse(content) as {
+            p?: string;
+            op?: string;
+            tick?: string;
+            amt?: string | number;
+          };
+          if (
+            parsed.p === "wjk-20" &&
+            parsed.op === "transfer" &&
+            String(parsed.tick ?? "").toLowerCase() === normalizedTick &&
+            parsed.amt != null
+          ) {
+            return { inscription_id: id, amount: String(parsed.amt) };
+          }
+        } catch {
+          return;
+        }
+      })
+    );
+    return transfers.filter((t): t is ITransfer => t !== undefined);
+  }
+
+  private async resolveTokenTransfers(
+    address: string,
+    token: Pick<IToken, "tick" | "transfers" | "transfers_count">
+  ): Promise<ITransfer[]> {
+    const existing = this.mapIndexerTransfers(token.transfers);
+    if (existing.length) return existing;
+    if (!Number(token.transfers_count)) return [];
+
+    const fromIndexer = await this.getTokenBalanceFromIndexer(
+      address,
+      token.tick
+    );
+    if (fromIndexer?.length) return fromIndexer;
+
+    return await this.discoverTokenTransfersFromOrd(address, token.tick);
+  }
+
   async getTokens(address: string): Promise<IToken[] | undefined> {
     const data = await this.fetch<IToken[]>({
       path: `/address/${address}/tokens`,
       service: "token",
     });
     if (!Array.isArray(data)) return data;
-    // The indexer omits the per-token `transfers` array when there are none;
-    // normalize so the UI can safely read `token.transfers`.
-    return data.map((t) => ({
-      ...t,
-      transfers: t.transfers ?? [],
-      transfers_count: t.transfers_count ?? 0,
-      transferable_balance: t.transferable_balance ?? "0",
-    }));
+
+    return Promise.all(
+      data.map(async (t) => {
+        const transfers = await this.resolveTokenTransfers(address, t);
+        return {
+          ...t,
+          transfers,
+          transfers_count: t.transfers_count ?? transfers.length,
+          transferable_balance: t.transferable_balance ?? "0",
+        };
+      })
+    );
   }
 
   async getTransaction(txid: string) {

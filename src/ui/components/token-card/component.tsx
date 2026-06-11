@@ -97,7 +97,9 @@ const TokenCard: FC<Props> = ({ token, openMintModal, openSendModal }) => {
 
         <div className={s.btnContainer}>
           <button
-            disabled={!token.transfers.length}
+            disabled={
+              !token.transfers.length && !Number(token.transfers_count)
+            }
             className={s.btn}
             onClick={() => {
               openSendModal(token);
