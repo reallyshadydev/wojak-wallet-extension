@@ -62,6 +62,11 @@ const TOKEN_API_URL =
 export const WOJAKCOIN_URL = "https://wojakcoin.cash";
 export const SPLITTER_URL = WOJAKCOIN_URL + "/splitter";
 
+// Block explorer — serves /tx/<txid> for viewing transactions.
+export const EXPLORER_URL =
+  process.env.EXPLORER_URL ?? "https://explorer.wojakcoin.cash";
+export const explorerTxUrl = (txId: string) => `${EXPLORER_URL}/tx/${txId}`;
+
 const TESTNET_WOJAKCOIN_API_URL =
   process.env.TESTNET_API_URL ?? "https://testnet.wojakcoin.cash/electrs";
 const TESTNET_CONTENT_URL =
