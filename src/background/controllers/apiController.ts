@@ -315,6 +315,25 @@ class ApiController implements IApiController {
     return transfers.filter((t): t is ITransfer => t !== undefined);
   }
 
+  // Sum transfer-inscription amounts without float drift by scaling to the
+  // largest decimal precision present, summing as integers, then rescaling.
+  private sumTransferAmounts(transfers: ITransfer[]): string {
+    if (!transfers.length) return "0";
+    let maxDecimals = 0;
+    for (const tr of transfers) {
+      const dot = tr.amount.indexOf(".");
+      if (dot >= 0) {
+        maxDecimals = Math.max(maxDecimals, tr.amount.length - dot - 1);
+      }
+    }
+    const scale = 10 ** maxDecimals;
+    const totalScaled = transfers.reduce(
+      (acc, tr) => acc + Math.round(Number(tr.amount) * scale),
+      0
+    );
+    return (totalScaled / scale).toString();
+  }
+
   private async resolveTokenTransfers(
     address: string,
     token: Pick<IToken, "tick" | "transfers" | "transfers_count">
@@ -342,11 +361,17 @@ class ApiController implements IApiController {
     return Promise.all(
       data.map(async (t) => {
         const transfers = await this.resolveTokenTransfers(address, t);
+        // The resolved transfer inscriptions are the source of truth for the
+        // transferable balance; the indexer's own field can lag/undercount.
+        // Fall back to it only when no transfers could be resolved.
+        const transferable_balance = transfers.length
+          ? this.sumTransferAmounts(transfers)
+          : t.transferable_balance ?? "0";
         return {
           ...t,
           transfers,
           transfers_count: t.transfers_count ?? transfers.length,
-          transferable_balance: t.transferable_balance ?? "0",
+          transferable_balance,
         };
       })
     );
