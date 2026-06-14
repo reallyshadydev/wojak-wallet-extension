@@ -29,6 +29,7 @@ interface FormType {
   amount: string;
   feeAmount: number;
   includeFeeInAmount: boolean;
+  opReturn: string;
 }
 
 const CreateSend = () => {
@@ -36,11 +37,13 @@ const CreateSend = () => {
 
   const [isOpenModal, setOpenModal] = useState<boolean>(false);
   const [isSaveAddress, setIsSaveAddress] = useState<boolean>(false);
+  const [opReturnEnabled, setOpReturnEnabled] = useState<boolean>(false);
   const [formData, setFormData] = useState<FormType>({
     address: "",
     amount: "",
     includeFeeInAmount: false,
     feeAmount: 10,
+    opReturn: "",
   });
   const [includeFeeLocked, setIncludeFeeLocked] = useState<boolean>(false);
   const currentAccount = useGetCurrentAccount();
@@ -67,6 +70,7 @@ const CreateSend = () => {
     amount: amountStr,
     feeAmount: feeRate,
     includeFeeInAmount,
+    opReturn,
   }: FormType) => {
     try {
       setLoading(true);
@@ -101,7 +105,8 @@ const CreateSend = () => {
               address,
               Number((amount * 10 ** 8).toFixed(0)),
               feeRate,
-              includeFeeInAmount
+              includeFeeInAmount,
+              opReturnEnabled ? opReturn : undefined
             )
           : await createOrdTx(address, feeRate, inscription!);
       } catch (e) {
@@ -129,6 +134,7 @@ const CreateSend = () => {
           hex: rawtx,
           save: isSaveAddress,
           inscriptionTransaction,
+          opReturn: opReturnEnabled ? opReturn : undefined,
         },
       });
     } catch (e) {
@@ -166,6 +172,7 @@ const CreateSend = () => {
               amount: location.state.amount,
               feeAmount: location.state.inputedFee,
               includeFeeInAmount: location.state.includeFeeInAmount,
+              opReturn: location.state.opReturn ?? "",
             };
           }
 
@@ -284,6 +291,42 @@ const CreateSend = () => {
             onChange={setIsSaveAddress}
             locked={false}
           />
+
+          {!inscriptionTransaction && (
+            <>
+              <Switch
+                label={t("send.create_send.op_return_label")}
+                value={opReturnEnabled}
+                onChange={setOpReturnEnabled}
+                locked={false}
+              />
+              {opReturnEnabled && (
+                <div className="form-field w-full">
+                  <span className="input-span">
+                    {t("send.create_send.op_return_data_label")}
+                  </span>
+                  <textarea
+                    className="w-full input resize-none text-sm"
+                    rows={2}
+                    maxLength={80}
+                    placeholder={t(
+                      "send.create_send.op_return_data_placeholder"
+                    )}
+                    value={formData.opReturn}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        opReturn: e.target.value,
+                      }))
+                    }
+                  />
+                  <span className="text-xs text-gray-400 text-right w-full">
+                    {formData.opReturn.length}/80
+                  </span>
+                </div>
+              )}
+            </>
+          )}
         </div>
       </form>
 

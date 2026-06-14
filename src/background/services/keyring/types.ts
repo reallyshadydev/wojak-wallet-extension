@@ -22,6 +22,7 @@ interface SendBase {
 
 export interface SendBEL extends SendBase {
   utxos: ApiUTXO[];
+  opReturn?: string;
 }
 
 export interface SendOrd extends SendBase {

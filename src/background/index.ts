@@ -127,28 +127,32 @@ browserRuntimeOnInstalled((details: { reason: string }) => {
 const INTERNAL_STAYALIVE_PORT = "CT_Internal_port_alive";
 let alivePort: any = null;
 
-setInterval(async () => {
+setInterval(() => {
   if (alivePort == null) {
-    alivePort = chrome.runtime.connect({ name: INTERNAL_STAYALIVE_PORT });
+    try {
+      alivePort = chrome.runtime.connect({ name: INTERNAL_STAYALIVE_PORT });
+      // Consume lastError synchronously so Chrome does not log an unchecked
+      // runtime.lastError when the connect fails (e.g. bfcache eviction).
+      void chrome.runtime.lastError;
+    } catch {
+      alivePort = null;
+      return;
+    }
 
     alivePort.onDisconnect.addListener(() => {
-      if (chrome.runtime.lastError) {
-        //
-      } else {
-        //
-      }
-
+      // Reading lastError inside onDisconnect marks it as handled and
+      // prevents the "Unchecked runtime.lastError" console warning.
+      void chrome.runtime.lastError;
       alivePort = null;
     });
   }
 
   if (alivePort) {
-    alivePort.postMessage({ content: "keep alive~" });
-
-    if (chrome.runtime.lastError) {
-      //
-    } else {
-      //
+    try {
+      alivePort.postMessage({ content: "keep alive~" });
+      void chrome.runtime.lastError;
+    } catch {
+      alivePort = null;
     }
   }
 }, 5000);

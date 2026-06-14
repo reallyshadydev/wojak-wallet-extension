@@ -112,7 +112,8 @@
       "fee": "费用",
       "included": "已包括",
       "not_included": "未包括",
-      "confirm": "确认"
+      "confirm": "确认",
+      "op_return": "OP_RETURN"
     },
     "create_send": {
       "minimum_amount_error": "最小金额 - 0.00001 WJK",
@@ -128,6 +129,9 @@
       "fee_label": "费用:",
       "include_fee_in_the_amount_label": "金额中包括费用",
       "save_address_for_the_next_payments_label": "为下次支付保存此地址",
+      "op_return_label": "添加 OP_RETURN 数据",
+      "op_return_data_label": "OP_RETURN 数据",
+      "op_return_data_placeholder": "输入消息（最多 80 字节）",
       "continue": "继续",
       "fee_input": {
         "fast": "快",

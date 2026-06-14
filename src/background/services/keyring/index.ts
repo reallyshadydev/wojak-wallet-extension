@@ -1,7 +1,7 @@
 import { KeyringServiceError } from "./consts";
 import type { Hex, Json, SendBEL, SendOrd, UserToSignInput } from "./types";
 import { storageService } from "@/background/services";
-import { Network, payments, Psbt } from "belcoinjs-lib";
+import { Network, payments, Psbt, script as btcScript } from "belcoinjs-lib";
 import { getScriptForAddress, toXOnly } from "@/shared/utils/transactions";
 import {
   createMultisendOrd,
@@ -210,6 +210,21 @@ class KeyringService {
     if (!scriptPk)
       throw new Error("Internal error: Failed to get script for address");
 
+    const opReturnScript =
+      data.opReturn && data.opReturn.trim().length > 0
+        ? btcScript.compile([
+            btcScript.OPS.OP_RETURN,
+            Buffer.from(data.opReturn.trim(), "utf8"),
+          ])
+        : null;
+
+    const signWithOpReturn = async (psbt: Psbt): Promise<void> => {
+      if (opReturnScript) {
+        psbt.addOutput({ script: opReturnScript, value: 0 });
+      }
+      await (this.signPsbt.bind(this) as (psbt: Psbt) => Promise<void>)(psbt);
+    };
+
     const psbt = await createSendBEL({
       utxos: data.utxos.map((v) => {
         return {
@@ -224,9 +239,7 @@ class KeyringService {
       }),
       toAddress: data.to,
       toAmount: data.amount,
-      signTransaction: this.signPsbt.bind(this) as (
-        psbt: Psbt
-      ) => Promise<void>,
+      signTransaction: signWithOpReturn,
       network: data.network,
       changeAddress: account.address,
       receiverToPayFee: data.receiverToPayFee,

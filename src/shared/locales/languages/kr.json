@@ -112,7 +112,8 @@
       "fee": "수수료",
       "included": "포함",
       "not_included": "포함되지 않음",
-      "confirm": "확인"
+      "confirm": "확인",
+      "op_return": "OP_RETURN"
     },
     "create_send": {
       "minimum_amount_error": "최소 금액은 0.00001 WJK입니다",
@@ -128,6 +129,9 @@
       "fee_label": "수수료:",
       "include_fee_in_the_amount_label": "금액에 수수료 포함",
       "save_address_for_the_next_payments_label": "다음 결제를 위해 주소 저장",
+      "op_return_label": "OP_RETURN 데이터 추가",
+      "op_return_data_label": "OP_RETURN 데이터",
+      "op_return_data_placeholder": "메시지 입력 (최대 80바이트)",
       "continue": "계속",
       "fee_input": {
         "fast": "빠르게",
