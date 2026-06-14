@@ -159,7 +159,8 @@
       "included": "included",
       "not_included": "not included",
       "confirm": "Confirm",
-      "inscription_id": "Inscription Id"
+      "inscription_id": "Inscription Id",
+      "op_return": "OP_RETURN"
     },
     "create_send": {
       "minimum_amount_error": "Minimum amount is 0.00001 WJK",
@@ -176,6 +177,9 @@
       "fee_label": "Fee",
       "include_fee_in_the_amount_label": "Include fee in the amount",
       "save_address_for_the_next_payments_label": "Save address for the next payments",
+      "op_return_label": "Add OP_RETURN data",
+      "op_return_data_label": "OP_RETURN data",
+      "op_return_data_placeholder": "Enter message (max 80 bytes)",
       "continue": "Continue",
       "fee_input": {
         "fast": "Fast",

@@ -74,6 +74,14 @@ const ConfirmSend = () => {
           : t("send.confirm_send.not_included")
       })`,
     },
+    ...(location.state.opReturn
+      ? [
+          {
+            label: t("send.confirm_send.op_return"),
+            value: location.state.opReturn,
+          },
+        ]
+      : []),
   ];
 
   return (

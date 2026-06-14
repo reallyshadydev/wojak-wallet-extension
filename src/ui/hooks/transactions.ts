@@ -24,7 +24,8 @@ export function useCreateWojakTxCallback() {
     toAddress: Hex,
     toAmount: number,
     feeRate: number,
-    receiverToPayFee = false
+    receiverToPayFee = false,
+    opReturn?: string
   ): Promise<{ rawtx: string; fee: number } | undefined> => {
     if (
       selectedWallet === undefined ||
@@ -80,6 +81,7 @@ export function useCreateWojakTxCallback() {
       receiverToPayFee,
       feeRate,
       network,
+      opReturn,
     });
     const psbt = Psbt.fromHex(psbtHex);
     const tx = psbt.extractTransaction(true);
