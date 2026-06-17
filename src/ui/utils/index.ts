@@ -72,11 +72,12 @@ export function isValidTXID(txid: string | undefined): boolean {
 export function getAddressType(
   addressStr: string,
   network: Network
-): AddressType.P2WPKH | AddressType.P2PKH | AddressType.P2TR | undefined {
+): AddressType.P2WPKH | AddressType.P2PKH | AddressType.P2TR | number | undefined {
   try {
     const version = address.fromBase58Check(addressStr).version;
     if (version === network.pubKeyHash) return 0;
-    if (version === network.scriptHash) return;
+    // P2SH / multisig — valid send target, return a non-undefined value
+    if (version === network.scriptHash) return 0;
   } catch {
     try {
       const version = address.fromBech32(addressStr).version;

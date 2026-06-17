@@ -25,7 +25,8 @@ export function useCreateWojakTxCallback() {
     toAmount: number,
     feeRate: number,
     receiverToPayFee = false,
-    opReturn?: string
+    opReturn?: string,
+    opReturnIsHex?: boolean
   ): Promise<{ rawtx: string; fee: number } | undefined> => {
     if (
       selectedWallet === undefined ||
@@ -82,6 +83,7 @@ export function useCreateWojakTxCallback() {
       feeRate,
       network,
       opReturn,
+      opReturnIsHex,
     });
     const psbt = Psbt.fromHex(psbtHex);
     const tx = psbt.extractTransaction(true);

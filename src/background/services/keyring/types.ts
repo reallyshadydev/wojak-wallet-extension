@@ -23,6 +23,8 @@ interface SendBase {
 export interface SendBEL extends SendBase {
   utxos: ApiUTXO[];
   opReturn?: string;
+  /** When true, opReturn is a hex string that must be binary-encoded (not UTF-8). */
+  opReturnIsHex?: boolean;
 }
 
 export interface SendOrd extends SendBase {

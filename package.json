@@ -43,6 +43,7 @@
     "eth-rpc-errors": "4.0.3",
     "events": "^3.3.0",
     "i18next": "23.12.2",
+    "jsqr": "^1.4.0",
     "immer": "^10.1.1",
     "koa-compose": "4.1.0",
     "nintondo-bip39": "^1.0.0",
