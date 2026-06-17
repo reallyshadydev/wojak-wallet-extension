@@ -11,6 +11,7 @@ import type {
   SignPsbtOptions,
 } from "@/background/services/keyring/types";
 import { INintondoProvider, NetworkType } from "nintondo-sdk";
+import type { CreateTxProps } from "@/shared/interfaces/notification";
 
 const script = document.currentScript;
 const channelName = script?.getAttribute("channel") || "WOJAKWALLET";
@@ -203,7 +204,7 @@ export class WojakProvider
     });
   };
 
-  createTx = async (data: SendBEL) => {
+  createTx = async (data: CreateTxProps) => {
     return this._request({
       method: "createTx",
       params: [data],

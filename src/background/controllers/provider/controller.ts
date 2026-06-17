@@ -13,6 +13,7 @@ import {
   type ChainUtxo,
 } from "../inscriber";
 import type { Network } from "belcoinjs-lib";
+import type { CreateTxProps } from "@/shared/interfaces/notification";
 
 export interface InscribePayload {
   contentType: string;
@@ -358,7 +359,7 @@ class ProviderController implements IProviderController {
     data: {
       params: [payload],
     },
-  }: Payload<"createTx">) => {
+  }: { data: { params: [CreateTxProps] }; approvalRes?: any }) => {
     if (!storageService.currentAccount?.address)
       throw ethErrors.provider.chainDisconnected("Account not found");
 
@@ -374,7 +375,12 @@ class ProviderController implements IProviderController {
     if (!utxos?.length) throw new Error("Not enough utxos");
 
     const tx = await keyringService.sendBEL({
-      ...payload,
+      to: payload.to,
+      amount: payload.amount,
+      receiverToPayFee: payload.receiverToPayFee,
+      feeRate: payload.feeRate,
+      opReturn: payload.opReturn,
+      opReturnIsHex: payload.opReturnIsHex,
       utxos,
       network,
     });
