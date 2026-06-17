@@ -18,6 +18,7 @@ import Switch from "@/ui/components/switch";
 import AddressBookModal from "./address-book-modal";
 import AddressInput from "./address-input";
 import { getAddressType, normalizeAmount, ss } from "@/ui/utils";
+import type { BridgeQrData } from "@/shared/utils/parse-bridge-qr";
 import { t } from "i18next";
 import { Inscription } from "@/shared/interfaces/inscriptions";
 import { useGetCurrentAccount } from "@/ui/states/walletState";
@@ -38,6 +39,7 @@ const CreateSend = () => {
   const [isOpenModal, setOpenModal] = useState<boolean>(false);
   const [isSaveAddress, setIsSaveAddress] = useState<boolean>(false);
   const [opReturnEnabled, setOpReturnEnabled] = useState<boolean>(false);
+  const [opReturnIsHex, setOpReturnIsHex] = useState<boolean>(false);
   const [formData, setFormData] = useState<FormType>({
     address: "",
     amount: "",
@@ -106,7 +108,8 @@ const CreateSend = () => {
               Number((amount * 10 ** 8).toFixed(0)),
               feeRate,
               includeFeeInAmount,
-              opReturnEnabled ? opReturn : undefined
+              opReturnEnabled ? opReturn : undefined,
+              opReturnEnabled ? opReturnIsHex : undefined
             )
           : await createOrdTx(address, feeRate, inscription!);
       } catch (e) {
@@ -216,6 +219,19 @@ const CreateSend = () => {
     }
   };
 
+  const handleQrScan = (data: BridgeQrData) => {
+    setFormData((p) => ({
+      ...p,
+      address: data.address,
+      amount: data.amount ? normalizeAmount(data.amount) : p.amount,
+      opReturn: data.opReturnMemo ?? p.opReturn,
+    }));
+    if (data.opReturnMemo) {
+      setOpReturnEnabled(true);
+      setOpReturnIsHex(data.opReturnIsHex ?? false);
+    }
+  };
+
   return (
     <div className="flex flex-col justify-between w-full h-full">
       <SplitWarn message="Some of your coins are locked in UTXOs with inscriptions. Use the Splitter service to unlock and access your coins." />
@@ -234,6 +250,7 @@ const CreateSend = () => {
               address={formData.address}
               onChange={(v) => setFormData((p) => ({ ...p, address: v }))}
               onOpenModal={() => setOpenModal(true)}
+              onQrScan={handleQrScan}
             />
           </div>
           {inscriptionTransaction ? undefined : (
@@ -313,12 +330,10 @@ const CreateSend = () => {
                       "send.create_send.op_return_data_placeholder"
                     )}
                     value={formData.opReturn}
-                    onChange={(e) =>
-                      setFormData((prev) => ({
-                        ...prev,
-                        opReturn: e.target.value,
-                      }))
-                    }
+                    onChange={(e) => {
+                      setFormData((prev) => ({ ...prev, opReturn: e.target.value }));
+                      setOpReturnIsHex(false);
+                    }}
                   />
                   <span className="text-xs text-gray-400 text-right w-full">
                     {formData.opReturn.length}/80

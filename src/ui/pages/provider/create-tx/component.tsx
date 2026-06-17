@@ -41,6 +41,14 @@ const CreateTx = () => {
       label: "Fee Rate",
       value: `${psbt.feeRate} sat/Vb`,
     },
+    ...(psbt.opReturn
+      ? [
+          {
+            label: "OP_RETURN (routing data)",
+            value: psbt.opReturn,
+          },
+        ]
+      : []),
   ];
 
   return (

@@ -4,7 +4,7 @@ import { keyringService, storageService } from "../../services";
 import "reflect-metadata/lite";
 import permission from "@/background/services/permission";
 import apiController from "../apiController";
-import { INintondoProvider, NetworkType } from "nintondo-sdk";
+import { IWojakProvider, NetworkType } from "wojak-sdk";
 import { gptFeeCalculate, isTestnet } from "@/ui/utils";
 import { ethErrors } from "eth-rpc-errors";
 import walletController from "../walletController";
@@ -13,6 +13,7 @@ import {
   type ChainUtxo,
 } from "../inscriber";
 import type { Network } from "belcoinjs-lib";
+import type { CreateTxProps } from "@/shared/interfaces/notification";
 
 export interface InscribePayload {
   contentType: string;
@@ -235,15 +236,15 @@ async function buildSignedBatch(
 }
 
 type IProviderController<
-  K extends keyof INintondoProvider = keyof Omit<INintondoProvider, "on">
+  K extends keyof IWojakProvider = keyof Omit<IWojakProvider, "on">
 > = {
-  [P in K]: (p: Payload<P>) => ReturnType<INintondoProvider[P]>;
+  [P in K]: (p: Payload<P>) => ReturnType<IWojakProvider[P]>;
 };
 
-type Payload<P extends keyof INintondoProvider> = {
+type Payload<P extends keyof IWojakProvider> = {
   session: { origin: string };
   data: {
-    params: Parameters<INintondoProvider[P]>;
+    params: Parameters<IWojakProvider[P]>;
   };
   approvalRes?: any;
 };
@@ -358,7 +359,7 @@ class ProviderController implements IProviderController {
     data: {
       params: [payload],
     },
-  }: Payload<"createTx">) => {
+  }: { data: { params: [CreateTxProps] }; approvalRes?: any }) => {
     if (!storageService.currentAccount?.address)
       throw ethErrors.provider.chainDisconnected("Account not found");
 
@@ -374,7 +375,12 @@ class ProviderController implements IProviderController {
     if (!utxos?.length) throw new Error("Not enough utxos");
 
     const tx = await keyringService.sendBEL({
-      ...payload,
+      to: payload.to,
+      amount: payload.amount,
+      receiverToPayFee: payload.receiverToPayFee,
+      feeRate: payload.feeRate,
+      opReturn: payload.opReturn,
+      opReturnIsHex: payload.opReturnIsHex,
       utxos,
       network,
     });

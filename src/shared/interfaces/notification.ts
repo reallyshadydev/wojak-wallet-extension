@@ -49,6 +49,10 @@ export interface CreateTxProps {
   amount: number;
   feeRate: number;
   receiverToPayFee: boolean;
+  /** Raw OP_RETURN payload. The keyring encodes it based on opReturnIsHex. */
+  opReturn?: string;
+  /** When true, opReturn is treated as hex (binary-encoded). When false/omitted, UTF-8. */
+  opReturnIsHex?: boolean;
 }
 export interface CreateTransaction {
   address: string;

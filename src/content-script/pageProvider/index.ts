@@ -10,7 +10,8 @@ import type {
   SendBEL,
   SignPsbtOptions,
 } from "@/background/services/keyring/types";
-import { INintondoProvider, NetworkType } from "nintondo-sdk";
+import { IWojakProvider, NetworkType } from "wojak-sdk";
+import type { CreateTxProps } from "@/shared/interfaces/notification";
 
 const script = document.currentScript;
 const channelName = script?.getAttribute("channel") || "WOJAKWALLET";
@@ -35,7 +36,7 @@ interface WojakProviderProps {
 
 export class WojakProvider
   extends EventEmitter
-  implements INintondoProvider
+  implements IWojakProvider
 {
   _selectedAddress: string | null = null;
   _network: string | null = null;
@@ -148,8 +149,8 @@ export class WojakProvider
   };
 
   async _request<
-    K extends keyof INintondoProvider = keyof INintondoProvider,
-    T extends INintondoProvider[K] = INintondoProvider[K]
+    K extends keyof IWojakProvider = keyof IWojakProvider,
+    T extends IWojakProvider[K] = IWojakProvider[K]
   >(data: { method: K; params?: Parameters<T> }) {
     if (!data) {
       throw ethErrors.rpc.invalidRequest();
@@ -203,7 +204,7 @@ export class WojakProvider
     });
   };
 
-  createTx = async (data: SendBEL) => {
+  createTx = async (data: CreateTxProps) => {
     return this._request({
       method: "createTx",
       params: [data],
@@ -254,7 +255,7 @@ export class WojakProvider
     feeRate: number;
   }): Promise<{ txids: string[]; inscriptionId: string }> => {
     return this._request({
-      // not part of the upstream INintondoProvider type yet
+      // not part of the upstream IWojakProvider type yet
       method: "inscribe" as any,
       params: [payload] as any,
     }) as unknown as Promise<{ txids: string[]; inscriptionId: string }>;
@@ -326,7 +327,7 @@ export class WojakProvider
 
 declare global {
   interface Window {
-    wojak: INintondoProvider;
+    wojak: IWojakProvider;
   }
 }
 

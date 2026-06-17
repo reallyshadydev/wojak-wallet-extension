@@ -210,11 +210,14 @@ class KeyringService {
     if (!scriptPk)
       throw new Error("Internal error: Failed to get script for address");
 
+    const opReturnTrimmed = data.opReturn?.trim() ?? "";
     const opReturnScript =
-      data.opReturn && data.opReturn.trim().length > 0
+      opReturnTrimmed.length > 0
         ? btcScript.compile([
             btcScript.OPS.OP_RETURN,
-            Buffer.from(data.opReturn.trim(), "utf8"),
+            data.opReturnIsHex
+              ? Buffer.from(opReturnTrimmed.replace(/^0x/i, ""), "hex")
+              : Buffer.from(opReturnTrimmed, "utf8"),
           ])
         : null;
 
